@@ -42,6 +42,11 @@ jobs:
       if: ${{ env.super_secret == '' }}
       run: 'echo "echo the secret \"GCP_PROJECT_ID\" has not been made; echo please go to \"settings \> secrets \> actions\" to create it"'
 
+    - name: GCP Auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
     # Get the GKE credentials
     - name: Set up GKE credentials
       uses: google-github-actions/get-gke-credentials@v1
