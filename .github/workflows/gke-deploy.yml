@@ -141,8 +141,6 @@ jobs:
                 volumeMounts:
                 - name: postgres-storage
                   mountPath: /var/lib/postgresql/data
-                - name: init-script
-                  mountPath: /docker-entrypoint-initdb.d
               volumes:
               - name: postgres-storage
                 persistentVolumeClaim:
