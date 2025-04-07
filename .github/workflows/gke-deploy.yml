@@ -138,11 +138,7 @@ jobs:
                     secretKeyRef:
                       name: postgres-secret
                       key: password
-                - name: PGDATA
-                  value: /var/lib/postgresql/data/pgdata
                 volumeMounts:
-                - name: postgresdata
-                  mountPath: /var/lib/postgresql/data
                 - name: init-script
                   mountPath: /docker-entrypoint-initdb.d/
               volumes:
