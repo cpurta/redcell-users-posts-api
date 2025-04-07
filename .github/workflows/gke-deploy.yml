@@ -8,7 +8,6 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: users-posts-cluster
   GKE_ZONE: us-central1-a
   DEPLOYMENT_NAME: users-posts-api
@@ -37,13 +36,18 @@ jobs:
       run: |
         gcloud --quiet auth configure-docker gcr.io
 
+    # Set project in environment
+    - name: Set project in environment
+      run: |
+        echo "GCLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}" >> $GITHUB_ENV
+
     # Get the GKE credentials
     - name: Set up GKE credentials
       uses: google-github-actions/get-gke-credentials@v1
       with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}  # Explicitly set project_id
         credentials: ${{ secrets.GCP_SA_KEY }}
 
     # Build the Docker image
