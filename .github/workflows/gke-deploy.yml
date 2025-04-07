@@ -140,7 +140,7 @@ jobs:
                       key: password
                 volumeMounts:
                 - name: init-script
-                  mountPath: /var/lib/postgresql/data
+                  mountPath: /docker-entrypoint-initdb.d
               volumes:
               - name: init-script
                 configMap:
