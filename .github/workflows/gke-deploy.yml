@@ -201,6 +201,8 @@ jobs:
                 ports:
                 - containerPort: 8080
                 env:
+                - name: LOGGING_LEVEL
+                  value: DEBUG
                 - name: POSTGRES_CONN_HOST
                   value: postgres
                 - name: POSTGRES_CONN_PORT
