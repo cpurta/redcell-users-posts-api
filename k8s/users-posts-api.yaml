@@ -5,7 +5,7 @@ metadata:
   labels:
     app: users-posts-api
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: users-posts-api
@@ -16,11 +16,12 @@ spec:
     spec:
       containers:
       - name: users-posts-api
-        image: redcellpartners.com/users-posts-api:latest
-        imagePullPolicy: IfNotPresent
+        image: gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
         ports:
         - containerPort: 8080
         env:
+        - name: LOGGING_LEVEL
+          value: debug
         - name: POSTGRES_CONN_HOST
           value: postgres
         - name: POSTGRES_CONN_PORT
@@ -34,6 +35,20 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: password
+        - name: POSTGRES_SSL_MODE
+          value: disable
+        readinessProbe:
+          httpGet:
+            path: /users
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /users
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
 ---
 apiVersion: v1
 kind: Service

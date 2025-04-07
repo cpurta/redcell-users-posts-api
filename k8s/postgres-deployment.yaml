@@ -30,12 +30,10 @@ spec:
               name: postgres-secret
               key: password
         volumeMounts:
-        - name: postgres-storage
-          mountPath: /var/lib/postgresql/data
         - name: init-script
-          mountPath: /docker-entrypoint-initdb.d
+          mountPath: /docker-entrypoint-initdb.d/
       volumes:
-      - name: postgres-storage
+      - name: postgresdata
         persistentVolumeClaim:
           claimName: postgres-pvc
       - name: init-script
@@ -53,6 +51,19 @@ spec:
   - port: 5432
     targetPort: 5432
   type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: ConfigMap
