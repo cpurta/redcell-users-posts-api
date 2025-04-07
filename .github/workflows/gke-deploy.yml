@@ -138,12 +138,13 @@ jobs:
                     secretKeyRef:
                       name: postgres-secret
                       key: password
-                volumeMounts:
-                - name: init-script
-                  mountPath: /var/lib/postgres/data
-                env:
                 - name: PGDATA
-                  value: /var/lib/postgres/pgdata
+                  value: /var/lib/postgresql/data/pgdata
+                volumeMounts:
+                - name: postgresdata
+                  mountPath: /var/lib/postgresql/data
+                - name: init-script
+                  mountPath: /docker-entrypoint-initdb.d/
               volumes:
               - name: postgresdata
                 persistentVolumeClaim:
@@ -151,9 +152,6 @@ jobs:
               - name: init-script
                 configMap:
                   name: postgres-init-script
-                  items:
-                    - key: init.sql
-                      path: init.sql
         ---
         apiVersion: v1
         kind: Service
