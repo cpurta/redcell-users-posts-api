@@ -148,6 +148,9 @@ jobs:
               - name: init-script
                 configMap:
                   name: postgres-init-script
+                  items:
+                    - key: init
+                      path: init.sql
         ---
         apiVersion: v1
         kind: Service
