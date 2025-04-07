@@ -207,9 +207,9 @@ jobs:
                   value: postgres
                 - name: POSTGRES_CONN_PORT
                   value: "5432"
-                - name: POSTGRES_CONN_USER
+                - name: POSTGRES_CONN_USERNAME
                   value: apiuser
-                - name: POSTGRES_CONN_NAME
+                - name: POSTGRES_CONN_DATABASE
                   value: usersdb
                 - name: POSTGRES_CONN_PASSWORD
                   valueFrom:
