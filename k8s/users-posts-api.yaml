@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: users-posts-api
-        image: gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+        image: gcr.io/redcellpartners.com/users-posts-api:latest
         ports:
         - containerPort: 8080
         env:
