@@ -207,15 +207,15 @@ jobs:
                 ports:
                 - containerPort: 8080
                 env:
-                - name: DB_HOST
+                - name: POSTGRES_CONN_HOST
                   value: postgres
-                - name: DB_PORT
+                - name: POSTGRES_CONN_PORT
                   value: "5432"
-                - name: DB_USER
+                - name: POSTGRES_CONN_USER
                   value: apiuser
-                - name: DB_NAME
+                - name: POSTGRES_CONN_NAME
                   value: usersdb
-                - name: DB_PASSWORD
+                - name: POSTGRES_CONN_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: postgres-secret
