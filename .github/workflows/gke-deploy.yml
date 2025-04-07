@@ -36,11 +36,6 @@ jobs:
       run: |
         gcloud --quiet auth configure-docker gcr.io
 
-    # Set project in environment
-    - name: Set project in environment
-      run: |
-        echo "GCLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}" >> $GITHUB_ENV
-
     - name: "check is GCP_PROJECT_ID exists"
       env: 
         super_secret: ${{ secrets.GCP_PROJECT_ID }}
