@@ -140,11 +140,10 @@ jobs:
                       key: password
                 volumeMounts:
                 - name: init-script
-                  mountPath: /mnt/data
-                  subPath: pgdata
+                  mountPath: /var/lib/postgres/data
                 env:
                 - name: PGDATA
-                  value: /mnt/data/pgdata
+                  value: /var/lib/postgres/pgdata
               volumes:
               - name: init-script
                 configMap:
