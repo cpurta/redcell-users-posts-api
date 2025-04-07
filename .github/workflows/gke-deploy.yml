@@ -145,6 +145,9 @@ jobs:
                 - name: PGDATA
                   value: /var/lib/postgres/pgdata
               volumes:
+              - name: postgresdata
+                persistentVolumeClaim:
+                  claimName: postgres-pvc
               - name: init-script
                 configMap:
                   name: postgres-init-script
