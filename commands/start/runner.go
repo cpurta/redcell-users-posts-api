@@ -70,6 +70,8 @@ func (runner *StartRunner) Run(cliContext *cli.Context) error {
 		runner.PostgresSSLMode,
 	)
 
+	runner.logger.Debug("checking db connection string", zap.String("db_connection_str", dbConnString))
+
 	db, err := sql.Open("postgres", dbConnString)
 	if err != nil {
 		log.Fatalf("unable to connect to postgres database: %s", err.Error())
