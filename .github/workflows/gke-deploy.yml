@@ -8,6 +8,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: users-posts-cluster
   GKE_ZONE: us-central1-a
   DEPLOYMENT_NAME: users-posts-api
