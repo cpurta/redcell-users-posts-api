@@ -214,6 +214,8 @@ jobs:
                     secretKeyRef:
                       name: postgres-secret
                       key: password
+                - name: POSTGRES_SSL_MODE
+                  value: disable
                 readinessProbe:
                   httpGet:
                     path: /users
