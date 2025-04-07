@@ -40,7 +40,7 @@ jobs:
       env: 
         super_secret: ${{ secrets.GCP_PROJECT_ID }}
       if: ${{ env.super_secret == '' }}
-      run: 'echo "echo the secret \"GCP_PROJECT_ID\" has not been made; echo please go to \"settings \> secrets \> actions\" to create it"
+      run: 'echo "echo the secret \"GCP_PROJECT_ID\" has not been made; echo please go to \"settings \> secrets \> actions\" to create it"'
 
     # Get the GKE credentials
     - name: Set up GKE credentials
