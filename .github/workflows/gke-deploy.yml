@@ -40,6 +40,7 @@ jobs:
     - name: Set up GKE credentials
       uses: google-github-actions/get-gke-credentials@v1
       with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
         credentials: ${{ secrets.GCP_SA_KEY }}
