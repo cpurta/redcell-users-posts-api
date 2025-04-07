@@ -169,9 +169,11 @@ jobs:
         kind: PersistentVolumeClaim
         metadata:
           name: postgres-pvc
+          labels:
+            app: postgres
         spec:
           accessModes:
-            - ReadWriteOnce
+            - ReadWriteMany
           resources:
             requests:
               storage: 10Gi
