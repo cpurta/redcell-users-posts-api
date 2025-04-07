@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-posts-api
+  labels:
+    app: users-posts-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-posts-api
+  template:
+    metadata:
+      labels:
+        app: users-posts-api
+    spec:
+      containers:
+      - name: users-posts-api
+        image: redcellpartners.com/users-posts-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: POSTGRES_CONN_HOST
+          value: postgres
+        - name: POSTGRES_CONN_PORT
+          value: "5432"
+        - name: POSTGRES_CONN_USERNAME
+          value: apiuser
+        - name: POSTGRES_CONN_DATABASE
+          value: usersdb
+        - name: POSTGRES_CONN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-posts-api
+spec:
+  selector:
+    app: users-posts-api
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: LoadBalancer

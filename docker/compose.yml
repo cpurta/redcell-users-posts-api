@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: userapi
+      POSTGRES_PASSWORD: password123
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "userapi" ]
+      interval: 5s
+      retries: 5
+    restart: always
+  users-posts-api:
+    image: redcellpartners.com/users-posts-api:latest
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      LOG_LEVEL: DEBUG
+      POSTGRES_CONN_HOST: postgres
+      POSTGRES_CONN_PORT: 5432
+      POSTGRES_CONN_USERNAME: userapi
+      POSTGRES_CONN_PASSWORD: password123
+      POSTGRES_CONN_DATABASE: userapi
+      POSTGRES_CONN_SSL_MODE: disable
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/healthcheck"]
+      interval: 5s
+      retries: 5
+    restart: always
+    entrypoint: ["./users-posts-api", "start"]
