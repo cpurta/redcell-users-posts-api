@@ -90,4 +90,4 @@ jobs:
     # Deploy the API application
     - name: Deploy API application
       run: |
-        kubectl apply -f ./k8s/users-posts-api.yaml
+        envsubt < ./k8s/users-posts-api.yaml | kubectl apply -f -
