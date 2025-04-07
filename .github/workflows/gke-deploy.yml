@@ -1,0 +1,228 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GKE_CLUSTER: users-posts-cluster
+  GKE_ZONE: us-central1-a
+  DEPLOYMENT_NAME: users-posts-api
+  IMAGE: users-posts-api
+  POSTGRES_DEPLOYMENT_NAME: postgres
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    # Configure Docker to use the gcloud command-line tool as a credential helper
+    - name: Configure Docker with gcloud
+      run: |
+        gcloud --quiet auth configure-docker gcr.io
+
+    # Get the GKE credentials
+    - name: Set up GKE credentials
+      uses: google-github-actions/get-gke-credentials@v1
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GCP_SA_KEY }}
+
+    # Build the Docker image
+    - name: Build Docker image
+      run: |
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          .
+
+    # Push the Docker image to Google Container Registry
+    - name: Publish Docker image
+      run: |
+        docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
+
+    # Create Kubernetes secrets for PostgreSQL
+    - name: Create PostgreSQL Secret
+      run: |
+        kubectl create secret generic postgres-secret \
+          --from-literal=password='${{ secrets.POSTGRES_PASSWORD }}' \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    # Deploy PostgreSQL if it doesn't exist
+    - name: Deploy PostgreSQL
+      run: |
+        # Apply ConfigMap for database init script
+        cat <<EOF | kubectl apply -f -
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: postgres-init-script
+        data:
+          init.sql: |
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS posts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                title VARCHAR(200) NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
+        EOF
+
+        # Apply PostgreSQL deployment and service
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: postgres
+          labels:
+            app: postgres
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: postgres
+          template:
+            metadata:
+              labels:
+                app: postgres
+            spec:
+              containers:
+              - name: postgres
+                image: postgres:16
+                ports:
+                - containerPort: 5432
+                env:
+                - name: POSTGRES_DB
+                  value: usersdb
+                - name: POSTGRES_USER
+                  value: apiuser
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: password
+                volumeMounts:
+                - name: postgres-storage
+                  mountPath: /var/lib/postgresql/data
+                - name: init-script
+                  mountPath: /docker-entrypoint-initdb.d
+              volumes:
+              - name: postgres-storage
+                persistentVolumeClaim:
+                  claimName: postgres-pvc
+              - name: init-script
+                configMap:
+                  name: postgres-init-script
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: postgres
+        spec:
+          selector:
+            app: postgres
+          ports:
+          - port: 5432
+            targetPort: 5432
+          type: ClusterIP
+        ---
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: postgres-pvc
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+        EOF
+
+    # Deploy the API application
+    - name: Deploy API application
+      run: |
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: users-posts-api
+          labels:
+            app: users-posts-api
+        spec:
+          replicas: 2
+          selector:
+            matchLabels:
+              app: users-posts-api
+          template:
+            metadata:
+              labels:
+                app: users-posts-api
+            spec:
+              containers:
+              - name: users-posts-api
+                image: gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+                ports:
+                - containerPort: 8080
+                env:
+                - name: DB_HOST
+                  value: postgres
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_USER
+                  value: apiuser
+                - name: DB_NAME
+                  value: usersdb
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: password
+                readinessProbe:
+                  httpGet:
+                    path: /users
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                livenessProbe:
+                  httpGet:
+                    path: /users
+                    port: 8080
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: users-posts-api
+        spec:
+          selector:
+            app: users-posts-api
+          ports:
+          - port: 80
+            targetPort: 8080
+          type: LoadBalancer
+        EOF
