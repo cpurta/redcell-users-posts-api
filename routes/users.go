@@ -93,6 +93,7 @@ func (resource *UsersResource) CreateUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	w.Write(responseBody)
 }
 

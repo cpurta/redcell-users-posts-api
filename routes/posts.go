@@ -92,6 +92,7 @@ func (resource *PostsResource) CreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	w.Write(responseBody)
 }
 
