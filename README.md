@@ -60,3 +60,19 @@ There is also currently a live endpoint that you can test against: `http://34.60
 curl --request GET \
   --url http://34.60.24.109/users \
 ```
+
+### Testing
+
+You can run a suite of tests against the remote server by running the testing script in the 
+scripts folder:
+
+```
+$ ./scripts/test.sh
+```
+
+## Challenges
+
+Some of the challenges faced during this project was setting up postgres locally on minikube and when deploying
+to GKE. I had some issues running into mounting the initialization script and getting pod to successfully
+start. There was also some minor issues when connecting the API to the postgres pod but that was mostly due
+to configuration mismatches and was fairly straightforward to resolve.
