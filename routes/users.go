@@ -184,4 +184,6 @@ func (resource *UsersResource) DeleteUser(w http.ResponseWriter, r *http.Request
 		w.Write([]byte("unable to delete user at this time"))
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

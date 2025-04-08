@@ -183,4 +183,6 @@ func (resource *PostsResource) DeletePost(w http.ResponseWriter, r *http.Request
 		w.Write([]byte("unable to delete user at this time"))
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
